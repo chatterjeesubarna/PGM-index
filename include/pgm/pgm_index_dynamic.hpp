@@ -30,6 +30,7 @@
 #include <utility>
 #include <vector>
 
+int IOs = 0;
 namespace pgm {
 
 /**
@@ -112,6 +113,7 @@ class DynamicPGMIndex {
     }
 
     void insert(const Item &new_item) {
+        IOs = 1;
         auto insertion_point = lower_bound_bl(level(min_level).begin(), level(min_level).end(), new_item);
         if (insertion_point != level(min_level).end() && *insertion_point == new_item) {
             *insertion_point = new_item;
@@ -121,12 +123,14 @@ class DynamicPGMIndex {
         if (level(min_level).size() < buffer_max_size) {
             level(min_level).insert(insertion_point, new_item);
             used_levels = used_levels == min_level ? min_level + 1 : used_levels;
+            IOs = used_levels;
             return;
         }
 
         size_t slots_required = buffer_max_size + 1;
         uint8_t i;
         for (i = min_level + 1; i < used_levels; ++i) {
+            IOs++;
             auto slots_left_in_level = max_size(i) - level(i).size();
             if (slots_required <= slots_left_in_level)
                 break;

@@ -134,11 +134,6 @@ int main(int argc, char* argv[]) {
         // generateGapsNormal(mean, standard_deviation, false, false);
     } 
 
-    // generate in-memory data + also turn on gap generation
-    // generateKeys(false, false);
-    // std::sort(keys.begin(), keys.end());
-
-
     // read from file
     std::ifstream inputFile("/Users/subarnachatterjee/Dropbox/Cosine_Learned_Component/code_fun/data.txt");
     // test file open   
@@ -177,8 +172,6 @@ int main(int argc, char* argv[]) {
     sum = (double)sum/(double)N;
     
     std::cout << "average IO per read: " << sum << std::endl;
-
-
 
     // auto q = keys[2000];
     // auto range = index.search(q);

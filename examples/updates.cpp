@@ -10,34 +10,69 @@
 #include <cstdlib>
 #include <iostream>
 #include <algorithm>
+#include <random>
+#include <fstream>
 #include "pgm/pgm_index_dynamic.hpp"
 
 int main() {
     // Generate some random key-value pairs to bulk-load the Dynamic PGM-index
-    std::vector<std::pair<uint32_t, uint32_t>> data(1000000);
-    std::generate(data.begin(), data.end(), [] { return std::make_pair(std::rand(), std::rand()); });
-    std::sort(data.begin(), data.end());
+    // std::vector<std::pair<uint32_t, uint32_t>> data(1000000);
+    // std::generate(data.begin(), data.end(), [] { return std::make_pair(std::rand(), std::rand()); });
+    // std::sort(data.begin(), data.end());
+
+    // read from file
+    unsigned long long N = 1000000;
+    std::vector<std::pair<uint32_t, uint32_t>> keys;
+    std::vector<std::pair<uint32_t, uint32_t>> inserts;
+    std::ifstream inputFile("/Users/subarnachatterjee/Dropbox/Cosine_Learned_Component/code_fun/data.txt");
+    std::ifstream insertFile("/Users/subarnachatterjee/Dropbox/Cosine_Learned_Component/code_fun/insert.txt");
+    // test file open   
+    if (inputFile) {        
+        int key;
+
+        // read the elements in the file into a vector  
+        while ( inputFile >> key ) {
+            keys.push_back(std::make_pair(key, key));
+        }
+    }
+    else
+    {
+        printf("ERROR OPENING FILE\n");
+    }
+    // close the data file
+    std::sort(keys.begin(), keys.end());
 
     // Construct and bulk-load the Dynamic PGM-index
-    pgm::DynamicPGMIndex<uint32_t, uint32_t> dynamic_pgm(data.begin(), data.end());
+    pgm::DynamicPGMIndex<uint32_t, uint32_t> dynamic_pgm(keys.begin(), keys.end());
 
-    // Insert some data
-    dynamic_pgm.insert_or_assign(2, 4);
-    dynamic_pgm.insert_or_assign(4, 8);
-    dynamic_pgm.insert_or_assign(8, 16);
+    // get insert data
+    if (insertFile) {        
+        int key;
+        // read the elements in the file into a vector  
+        while ( insertFile >> key ) {
+            inserts.push_back(std::make_pair(key, key));
+        }
+    }
+    else
+    {
+        printf("ERROR OPENING FILE\n");
+    }
 
-    // Delete data
-    dynamic_pgm.erase(4);
+    // Insert into the PGM-index
+    int sum_IOs = 0;
+    int insert_count = 0;
+    for(int i=0; i<inserts.size(); i++)
+    {
+        dynamic_pgm.insert_or_assign(inserts[i].first, inserts[i].second);
 
-    // Query the container
-    std::cout << "Container size (data + index) = " << dynamic_pgm.size_in_bytes() << " bytes" << std::endl;
-    std::cout << "find(4) = " << (dynamic_pgm.find(4) == dynamic_pgm.end() ? "not found" : "found") << std::endl;
-    std::cout << "find(8)->second = " << dynamic_pgm.find(8)->second << std::endl;
-
-    std::cout << "Range search [1, 10000) = ";
-    auto result = dynamic_pgm.range(1, 10000);
-    for (auto[k, v] : result)
-        std::cout << "(" << k << "," << v << "), ";
+        sum_IOs += IOs;
+        insert_count++;
+        // std::cout << "IO: " << IOs << std::endl;
+    }
+    sum_IOs = (double)sum_IOs/(double)insert_count;
+    
+    std::cout << "average IO per insert: " << sum_IOs << std::endl;
+    std::cout << "inserted " << insert_count << " keys." << std::endl;
 
     return 0;
 }
